@@ -1,0 +1,32 @@
+version: "3.2"
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    container_name: app
+    volumes:
+      - type: bind
+        source: ./
+        target: /usr/src/app
+    ports:
+    - 3000:3000
+    networks:
+    - ts-network
+  mongo:
+    container_name: mongo
+    image: mongo:latest
+    restart: always
+    volumes:
+    - mongo_volumes:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE= api_db
+    ports:
+      - 27017:27017
+    networks:
+    - ts-network
+networks:
+  ts-network:
+volumes:
+  mongo_volumes:
+
