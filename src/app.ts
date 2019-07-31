@@ -1,38 +1,43 @@
-import mongoose from "mongoose";
 import bodyParser from 'body-parser';
-import { Routes } from './routes/crmRoutes';
+import cors from 'cors';
+import morgan from 'morgan';
+import helmet from 'helmet';
 import express from 'express';
-
-const mongoUrl = 'mongodb://mongo:27017/api_db';
+import { UserRoutes } from './Routes/UserRoutes';
+import { ContactRoutes } from './Routes/ContactRoutes';
+import { connect } from './Config/database';
 
 class App {
-
-    public app: express.Application;
-    public routePrv: Routes = new Routes();
+    public express: express.Application;
 
     constructor() {
-        this.app = express();
-        this.config()
-        this.routePrv.routes(this.app);
-        this.mongoSetup();
+      this.express = express();
+      this.setMiddlewares()
+      this.setRoutes()
+      this.catchErrors();
+      this.setDatabase();
     }
 
-    private config() {
-        this.app.use(bodyParser.json());
-        this.app.use(bodyParser.urlencoded({ extended: false }));
-    } 
-    private mongoSetup(): void{
-        mongoose.Promise = global.Promise;
-        mongoose.connect(mongoUrl, {
-          useNewUrlParser: true
-        }, (err) => {
-            if (err) {
-                console.log(`err mongodb ${err.message}`);
-              } else {
-                console.log(`MongoDB connected to -> ${mongoUrl}`);
-              }
-        });
+    private setMiddlewares(): void {
+      this.express.use(cors());
+      this.express.use(morgan('dev'));
+      this.express.use(bodyParser.json());
+      this.express.use(bodyParser.urlencoded({ extended: false }));
+      this.express.use(helmet());
+    }
+
+    private setRoutes(): void {
+      this.express.use('/users', new UserRoutes().router)
+      this.express.use('/contacts', new ContactRoutes().router)
+    }
+    
+    private setDatabase() {
+      connect();
+    }
+    
+    private catchErrors() {
+
     }
 }
 
-export default new App().app;
+export default new App().express;
